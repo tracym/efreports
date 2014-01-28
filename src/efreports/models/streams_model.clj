@@ -16,6 +16,7 @@
 
 (defn streams-connect [dbname]
   (let [uri (get (System/getenv) "MONGODB_URI" "mongodb://127.0.0.1/")]
+    (println "uri is " uri)
     (m/connect-via-uri! uri))
   (m/set-db! (m/get-db dbname)))
 

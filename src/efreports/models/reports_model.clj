@@ -10,7 +10,7 @@
            [com.mongodb DB WriteConcern]))
 
 (defn reports-connect [dbname]
-  (let [uri (get (System/getenv) "MONGODB_URI" "mongodb://127.0.0.1/")]
+  (let [uri (get (System/getenv)"MONGOHQ_URL" "mongodb://127.0.0.1/")]
     (m/connect-via-uri! uri))
   (m/set-db! (m/get-db dbname)))
 
