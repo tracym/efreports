@@ -30,6 +30,7 @@
                  ]
   :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
   :ring {:handler efreports.handler/app}
+  :min-lein-version "2.0.0"
   :repl-options {:init (do
                         (use 'efreports.helpers.stream-manipulations)
                         (use 'efreports.helpers.data)
