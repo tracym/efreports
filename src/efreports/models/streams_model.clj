@@ -13,12 +13,26 @@
 (defn sql-contains-illegal-keywords? [sql]
   (re-find #"(?i)\binsert\b|\bdelete\b|\bupdate\b" sql))
 
+(defn parse-mongo-url [mongo-url]
+  (let [stripped (.substring mongo-url 10)
+        user (.substring stripped 0 (.indexOf stripped  ":"))
+        password (.substring mongo-url (+ (.indexOf mongo-url user) (+ 1 (count user))) (.indexOf mongo-url "@"))
+        db (.substring mongo-url (+ 1  (.lastIndexOf mongo-url "/")))
+        ]
+    (assoc {} :user user :password password :db db)))
+
+
 
 (defn streams-connect [dbname]
-  (let [uri (get (System/getenv) "MONGOHQ_URL" "mongodb://127.0.0.1/")]
-    (println "uri is " uri)
-    (m/connect-via-uri! uri))
-  (m/set-db! (m/get-db dbname)))
+  (let [uri (get (System/getenv) "MONGOHQ_URL" "mongodb://127.0.0.1/efreports")
+        auth-map (parse-mongo-url uri)
+        ]
+    
+    (m/connect-via-uri! uri)
+    (m/use-db! (auth-map :db))
+    (m/authenticate (m/get-db (auth-map :db)) (auth-map :user) (auth-map :password))
+    )
+  )
 
 (defn all []
   (streams-connect "efreports")
