@@ -212,7 +212,7 @@
                 base-rs)]
 
         (let [frs (if (not (nil-or-empty? filter-map))
-                    (data/filter-seq-by-multiple mrs filter-map)
+                    (data/filter-seq-by-multiple-filter-maps mrs filter-map)
                     mrs)]
 
           (let [trs  (if (not (nil-or-empty? total-cols))

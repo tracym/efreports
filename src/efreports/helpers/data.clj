@@ -139,18 +139,48 @@
 
 ; )
 
+(def num-operator-map {"eq" = "ne" not= "gt" > "lt" < })
 
 
-(defn filter-seq-by-map
+
+
+(defn filter-comparison
+  "crude"
+  [op-str lvalue rvalue]
+  (if (and (number? lvalue) (number? rvalue))
+    ((num-operator-map op-str) lvalue rvalue)
+    (if (and (string? lvalue) (string? rvalue))
+      (case op-str
+        (or "eq" "ne") ((num-operator-map op-str) lvalue rvalue)
+        "gt" (> (compare lvalue rvalue) 0)
+        "lt" (< (compare lvalue rvalue) 0)))))
+
+
+(defn filter-seq-by-filter-map
+  "where seq-map is a sequence of maps and filter map is a map of filter criteria in this format:
+   {:keyval {:some-key 'some val'} :operator 'eq'}"
+  [seq-map filter-map]
+  (filter #(filter-comparison (filter-map :operator)
+            (% (first (keys (filter-map :keyval))))
+            (first (vals (filter-map :keyval)))) seq-map))
+
+
+(defn filter-seq-by-map-item
   "Filter a sequence of maps by a column and value (contained in a map).
    Note that we are only using equality for a comparison now."
    [seq-map keyval-map]
   (filter #(= (% (key keyval-map)) (val keyval-map)) seq-map))
 
-(defn filter-seq-by-multiple
+(defn filter-seq-by-multiple-map-items
   "Filter a sequence of maps by a map of criteria"
   [seq-map filter-criteria]
-  (reduce filter-seq-by-map seq-map filter-criteria))
+  (reduce filter-seq-by-map-item seq-map filter-criteria))
+
+
+(defn filter-seq-by-multiple-filter-maps
+  "Filter a sequence of maps by a map of criteria"
+  [seq-map filter-criteria]
+  (reduce filter-seq-by-filter-map seq-map filter-criteria))
 
 
 (defn get-empty-map [lmap rmap]
@@ -192,10 +222,10 @@
 
 (defn left-join-multi-key [lmap rmap keycols]
   (let [keym (pmap (fn [o] (select-keys o keycols)) lmap)]
-    (pmap (fn [n] (let [res (filter-seq-by-multiple rmap n)]
+    (pmap (fn [n] (let [res (filter-seq-by-multiple-map-items rmap n)]
               (if (empty? res)
-              (merge-map-with-empty (first (filter-seq-by-multiple lmap n)) (first rmap))
-              (merge (first (filter-seq-by-multiple lmap n)) (first res))))) keym)))
+              (merge-map-with-empty (first (filter-seq-by-multiple-map-items lmap n)) (first rmap))
+              (merge (first (filter-seq-by-multiple-map-items lmap n)) (first res))))) keym)))
 
 
 
@@ -232,7 +262,7 @@
             missing-x-vals (seq (difference (set distinct-x-vals) (set x-vals-per-y-key)))
             missing-x-maps (for [missing missing-x-vals]
                              (merge {x-key missing :total 0} (key y-item)))
-            existing-x-maps (filter-seq-by-multiple totalled-rs (key y-item))
+            existing-x-maps (filter-seq-by-multiple-map-items totalled-rs (key y-item))
             combined-maps (concat existing-x-maps missing-x-maps)]
            (pivot-row x-key y-key combined-maps)))))
 

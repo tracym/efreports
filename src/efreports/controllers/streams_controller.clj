@@ -171,7 +171,9 @@
                                       (. (str (key %)) startsWith ":key_col_ind_") %) colmap-data))]
           (stream-model/update-keycols found-stream keycols)
           (stream-model/update-column-map found-stream colmaps)
-          ;;overwrite the session column map ordering with new column map orderings
+          ;;overwrite the session column map ordering with new column
+          ;;map orderings
+          (stream-sess/init-stream-session (colmap-data :username) (found-stream :stream-name))
           (stream-sess/write-stream-keys (colmap-data :username) (found-stream :stream-name) :column-map-ordering
                                          (stream-manip/init-column-map-ordering ((stream-model/find-stream-map (found-stream :stream-name)) :column-map) 0))
           (ring/redirect "/"))))))
@@ -242,6 +244,9 @@
   (POST "/streams/update-visibility/" {update-params :params session :session}
         (plumbing/wrap-session-and-route session update-params update-column-visibility))
 
+  (GET "/streams/delete/:stream" {update-params :params session :session}
+         (plumbing/wrap-session-and-route session update-params delete-stream))
+  
   (kp/wrap-keyword-params
    (POST "/streams/update/column-map-tab/"  {stream-params :params session :session}
                                   (plumbing/wrap-session-and-route session stream-params update-column-map-tab)))

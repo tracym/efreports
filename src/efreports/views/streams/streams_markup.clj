@@ -21,10 +21,27 @@
     (form-to {:name "filter-column-cell-form" :class "form-horizontal"} [:get (str "/streams/data-header/"  (clj-string/replace stream-name #" " "%20"))]
       (hidden-field "fn" "filter-map-add")
       (hidden-field (str "filter-key-" filter-col) filter-val)
-      (submit-button {:class "btn btn-link filter-col-cell"} filter-val))])
+      
+      (hidden-field "filter-op-container" "")
+       ;;(submit-button {:class "btn btn-link filter-col-cell"} filter-val)
+       (html [:div {:class "btn-group"}
+             [:button {:class "btn btn-default dropdown-toggle" :data-toggle "dropdown"}
+              (str filter-val "&nbsp;")
+              [:span {:class "caret"}]]
+             [:ul {:class "dropdown-menu" :role "menu"}
+              [:li {:class "filter-op" :data-op "eq"} [:a {:href "#"} "Equals"]]
+              [:li {:class "filter-op" :data-op "gt"} [:a {:href "#"} "Greater Than"]]
+              [:li {:class "filter-op" :data-op "lt"} [:a {:href "#"} "Less Than"]]
+              [:li {:class "filter-op" :data-op "ne"} [:a {:href "#"} "Does Not Equal"]]
+              ]])
+
+      )])
+
+(def operator-display-map {"eq" " is " "ne" " is not " "lt" " is less than " "gt" " is greater than "})
 
 (defhtml filter-pills [filter-map colmap]
   (when (not (empty? filter-map))
+
     (html [:div {:class "row"}
        [:div {:class "col-md-12"} [:h4 "Filtered by:"]]
         [:div {:class "row"}
@@ -33,9 +50,10 @@
 
              (for [m filter-map]
 
-               [:li {:class "filter-pill well well-small col-xs-3" :id (key m)
-                     :data-filter-val (val m)}
-                 (str (colmap (key m)) " is ") (html [:strong (val m)]) [:a {:class "close"} "&times;"]])]]])))
+               [:li {:class "filter-pill well well-small col-xs-3" :id (first (keys (m :keyval)))
+                     :data-filter-val (first (vals (m :keyval))) :data-filter-op (m :operator)}
+                 (str (colmap (first (keys (m :keyval)))) (operator-display-map (m :operator))) (html [:strong (first (vals (m :keyval)))]) [:a {:class "close"} "&times;"]])]]]))
+  )
 
 (defhtml download-formats-button [stream-url]
   (html [:div {:class "btn-group"}

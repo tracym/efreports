@@ -10,12 +10,27 @@
 
 (defn extract-filter-params [stream-params]
   (select-keys stream-params
-                (for [[k,v] stream-params :when (. (str k) startsWith ":filter-key")] k)))
+               (for [[k,v] stream-params :when (or (. (str k) startsWith ":filter-key")
+                                                   (. (str k) startsWith ":filter-op-container")) ] k)))
 
 (defn extract-keycol-params [stream-params]
   (map (fn [m] (keyword (clj-str/replace (str (key m)) #":key_col_ind_" "")))
                 (select-keys stream-params
-                        (for [[k,v] stream-params :when (. (str k) startsWith ":key_col_ind_")] k))))
+                             (for [[k,v] stream-params :when (. (str k) startsWith ":key_col_ind_")] k))))
+
+(defn filter-map-replace-params->filter-map [stream-params]
+  (let [filter-keys (select-keys stream-params (for [[k,v] stream-params :when (. (str k) startsWith ":filter-key")] k))
+        filter-ops (select-keys stream-params (for [[k,v] stream-params :when (. (str k) startsWith ":filter-op")] k))
+        keyvals (map #(assoc {} (keyword (clj-str/replace (str (key %)) #":filter-key-" "")) (val %)) filter-keys)
+        keyops (map #(assoc {} (keyword (clj-str/replace (str (key %)) #":filter-op-" "")) (val %)) filter-ops)
+        ]
+      (for [kv keyvals]
+        (assoc {} :keyval kv
+                  :operator (->> keyops
+                             (filter #(= (first (keys %)) (first (keys kv))))
+                             first
+                             vals
+                             first)))))
 
 (defmulti store-request-manip
   (fn [stream stream-params]
@@ -45,10 +60,12 @@
   ;;This needs to be an additive operation. So merge filter maps already in the session with those being passed via the request
   [stream stream-params]
   (stream-sess/write-stream-keys (stream-params :username) stream
-                :filter-map (merge ((stream-sess/stream-attributes (stream-params :username) stream) :filter-map)
-                                   (into {}
-                                    (for [[k, v] (extract-filter-params stream-params)]
-                                    [(keyword (clj-str/replace-first (str k) #":filter-key-" "")) v]))))
+                :filter-map (conj ((stream-sess/stream-attributes (stream-params :username) stream) :filter-map)
+                                  (into {} (for [f (extract-filter-params stream-params)]
+                                             (if (= (key f) :filter-op-container)
+                                               (assoc {} :operator (val f))
+                                               (assoc {} :keyval (assoc {} (keyword (clj-str/replace-first (str (key f)) #":filter-key-" "")) (val f))))))
+                              ))
   (stream-sess/write-stream-keys (stream-params :username) stream :total-cols nil)
   (stream-sess/move-column-to-back (stream-params :username) stream
                                    ((stream-sess/stream-attributes (stream-params :username) stream) :column-map-ordering)
@@ -59,10 +76,9 @@
 
 (defmethod store-request-manip "filter-map-replace"
   [stream stream-params]
+  (println "parms " stream-params)
   (stream-sess/write-stream-keys (stream-params :username) stream
-                                  :filter-map (into {}
-                                    (for [[k, v] (extract-filter-params stream-params)]
-                                    [(keyword (clj-str/replace-first (str k) #":filter-key-" "")) v]))))
+                                  :filter-map (filter-map-replace-params->filter-map stream-params)))
 
 (defmethod store-request-manip "map-stream"
   [stream stream-params]
