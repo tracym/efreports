@@ -1,0 +1,18 @@
+th > a.close {
+	margin-left: .15em;
+	/*display:none;*/
+}
+
+label.checkbox {
+	margin-right: 1em;
+}
+
+/*ugh... no. must fix later*/
+div > center {
+	font-size: 24px;
+}
+
+td > form {
+  margin-bottom: 5px;
+}
+

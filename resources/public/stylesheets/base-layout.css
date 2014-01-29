@@ -1,0 +1,17 @@
+/*
+body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}*/
+
+.navbar {
+  margin-bottom: 0px;
+}
+
+.app-name {
+  margin-top: -20px;
+}
+
+.panel-heading > h1 {
+  font-size: 24px;
+
+}
