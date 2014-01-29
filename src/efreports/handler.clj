@@ -2,6 +2,7 @@
   (:use [compojure.core]
   	    [ring.middleware.params :only [wrap-params]]
         [hiccup.bootstrap.middleware]
+        [ring.middleware.file]
         [ring.middleware.resource]
         [ring.middleware.flash]
         [hiccup.middleware :only (wrap-base-url)]
@@ -12,8 +13,7 @@
         [clojure.tools.logging :only (info error)]
         [clojure.pprint]
         [hiccup.core :only (html)]
-        [ring.util.response]
-        )
+        [ring.util.response])
   (:require [compojure.handler :as handler]
             [compojure.route :as route]
             [ring.middleware.reload :as reload]
@@ -70,9 +70,15 @@
 
 
 (def app
-  (->> (handler/site app-routes {:session-store (session-store "sessions")})
-       (wrap-bootstrap-resources)
-       (reload/wrap-reload)
+  (->
+      ;;(wrap-bootstrap-resources)
+      (reload/wrap-reload)
+      (wrap-file "resources/public")
+      (handler/site app-routes {:session-store (session-store "sessions")})
+       
+       
+       
+       
        ;;(wrap-failsafe)
        ))
 
