@@ -27,7 +27,7 @@
   (let [uri (get (System/getenv) "MONGOHQ_URL" (str  "mongodb://foo:bar@127.0.0.1/" dbname))
         auth-map (parse-mongo-url uri)
         ]
-    
+    (println auth-map)
     (m/connect-via-uri! uri)
     (m/use-db! (auth-map :db))
     (m/authenticate (m/get-db (auth-map :db)) (auth-map :user) (.toCharArray (auth-map :password)))
