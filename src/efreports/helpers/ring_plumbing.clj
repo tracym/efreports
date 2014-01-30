@@ -8,7 +8,6 @@
   (let [username (select-keys session [:username])]
     (if (empty? username)
       (ring/redirect "/login")
-
+      
       (let [wrapped-params (merge params username)]
         (route-fn wrapped-params)))))
-

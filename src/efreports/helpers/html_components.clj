@@ -3,6 +3,7 @@
         [hiccup.page :only (html5 include-css include-js)]
         [hiccup.form :only (form-to check-box label text-area text-field password-field hidden-field submit-button)]
         [hiccup.core]
+        [ring.util.anti-forgery]
         [hiccup.bootstrap.page]
         [efreports.helpers.data]
         [efreports.helpers.tag])
@@ -122,7 +123,8 @@
                   " You could not be logged in. Ensure that your AccessNet username and password
                    are correct and then try again."]))
     [:form {:name "stream-data" :role "form" :class "form-horizontal" :method "POST" :action "auth"}
-          [:legend "Login Information"]
+    
+     [:legend "Login Information"]
             [:div {:class "form-group"}
               (label {:class "control-label col-lg-2"} "username" "Username")
               [:div {:class "col-lg-4"}

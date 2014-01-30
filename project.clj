@@ -14,8 +14,8 @@
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [c3p0/c3p0 "0.9.1.2"]
                  [http-kit "2.1.1"]
-                 [ring/ring-devel "1.1.8"]
-                 [ring/ring-core "1.1.8"]
+                 [ring/ring-devel "1.2.1"]
+                 [ring/ring-core "1.2.1"]
                  ;;[incanter/incanter-excel "1.5.1"]
                  [clj-excel "0.0.1"]
                  [org.clojure/tools.trace "0.7.5"]
@@ -27,6 +27,7 @@
                  [org.clojure/tools.logging "0.2.6"]
                  [digest "1.4.3"]
                  [clj-http "0.7.8"]
+                 [ring-anti-forgery "0.3.0"]
                  ]
   :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
   :ring {:handler efreports.handler/app}

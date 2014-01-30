@@ -5,6 +5,7 @@
         [ring.middleware.file]
         [ring.middleware.resource]
         [ring.middleware.flash]
+        [ring.middleware.anti-forgery]
         [hiccup.middleware :only (wrap-base-url)]
         [monger.ring.session-store :only [session-store]]
         [ring.middleware.session]
@@ -71,9 +72,9 @@
 
 (def app
   
-   ;;(wrap-bootstrap-resources)
- 
-   (wrap-file
+   ;;(wrap-bootstrap-resources) 
+   (wrap-resource
+    
     (handler/site app-routes {:session-store (session-store "sessions")}) "resources/public"))
        
        
