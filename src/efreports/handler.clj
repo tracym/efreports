@@ -72,9 +72,9 @@
 (def app
   
    ;;(wrap-bootstrap-resources)
-  (reload/wrap-reload
-   	(wrap-file
-   		(handler/site app-routes {:session-store (session-store "sessions")}) "resources/public")))
+ 
+   (wrap-file
+    (handler/site app-routes {:session-store (session-store "sessions")}) "resources/public"))
        
        
 (defn -main [& args]
