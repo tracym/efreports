@@ -221,8 +221,8 @@
 
 
 (defn left-join-multi-key [lmap rmap keycols]
-  (let [keym (pmap (fn [o] (select-keys o keycols)) lmap)]
-    (pmap (fn [n] (let [res (filter-seq-by-multiple-map-items rmap n)]
+  (let [keym (map (fn [o] (select-keys o keycols)) lmap)]
+    (map (fn [n] (let [res (filter-seq-by-multiple-map-items rmap n)]
               (if (empty? res)
               (merge-map-with-empty (first (filter-seq-by-multiple-map-items lmap n)) (first rmap))
               (merge (first (filter-seq-by-multiple-map-items lmap n)) (first res))))) keym)))
