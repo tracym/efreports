@@ -25,7 +25,7 @@
             [efreports.helpers.authentication :as auth]
             [efreports.controllers.reports-controller :as reports-controller]
             [efreports.controllers.dashboard-controller :as dashboard-controller]
-
+            [efreports.views.landing.landing-view :as landing]
 
             )
   (:gen-class))
@@ -34,7 +34,7 @@
 (defn authenticate
   [session login-params]
 
-    (assoc (redirect "/") :session (assoc session :username (login-params :username)))
+    (assoc (redirect "/streams") :session (assoc session :username (login-params :username)))
     ;;(assoc (redirect "/login") :flash "Login Failed!")
 )
 
@@ -55,6 +55,7 @@
 
 (defroutes app-routes
   (route/resources "/")
+  (GET "/" {} (landing/landing-page))
   (GET "/login" {msg :flash} (common "Login" nil (html (hc/login-form msg))))
   (GET "/logout" {session :session} (logout))
   (POST "/auth" {session :session login-params :params} (authenticate session login-params))
@@ -71,13 +72,13 @@
 
 
 (def app
-  
-   ;;(wrap-bootstrap-resources) 
+
+   ;;(wrap-bootstrap-resources)
    (wrap-resource
-    
+
     (handler/site app-routes {:session-store (session-store "sessions")}) "resources/public"))
-       
-       
+
+
 (defn -main [& args]
    (let [site app]
     (run-server site {:port (Integer. (or (System/getenv "PORT") "8080"))})))

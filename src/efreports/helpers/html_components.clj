@@ -92,7 +92,7 @@
             [:span {:class "icon-bar"}]
           ]
           [:a {:class "navbar-brand" :href "#"}
-           "Eff Reports"
+           "Ef Reports"
 
            ]]
 
@@ -123,7 +123,7 @@
                   " You could not be logged in. Ensure that your AccessNet username and password
                    are correct and then try again."]))
     [:form {:name "stream-data" :role "form" :class "form-horizontal" :method "POST" :action "auth"}
-    
+
      [:legend "Login Information"]
             [:div {:class "form-group"}
               (label {:class "control-label col-lg-2"} "username" "Username")

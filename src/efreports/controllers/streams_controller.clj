@@ -71,7 +71,7 @@
 
           rs (data/cached-query-memo user (stream-sess/stream-last-refresh user stream-name)
                                              (found-stream :sql))
-         
+
           stream-attr (stream-sess/stream-attributes user stream-name)
 
           manip-rs     (stream-manip/apply-stored-manip stream-attr rs)
@@ -125,7 +125,7 @@
 ;methods to update the progress of data retrieval and then render the data
 ;part of the async stream retrieval functionality
 (defn data-stream-header [stream-params]
- 
+
     (stream-manip-store/store-request-manip (stream-params :stream) stream-params)
     (let [found-stream (get-stream-meta stream-params)]
        (stream-sess/init-stream-session (stream-params :username) (found-stream :stream-name))
@@ -221,7 +221,7 @@
 )
 
 (defroutes routes
-  (GET  "/" {session :session} (plumbing/wrap-session-and-route session session index))
+  (GET  "/streams" {session :session} (plumbing/wrap-session-and-route session session index))
 
   (GET "/streams/new" {stream-params :params session :session flash :flash}
         (plumbing/wrap-session-and-route session (assoc stream-params :flash flash) new-stream))
@@ -246,7 +246,7 @@
 
   (GET "/streams/delete/:stream" {update-params :params session :session}
          (plumbing/wrap-session-and-route session update-params delete-stream))
-  
+
   (kp/wrap-keyword-params
    (POST "/streams/update/column-map-tab/"  {stream-params :params session :session}
                                   (plumbing/wrap-session-and-route session stream-params update-column-map-tab)))

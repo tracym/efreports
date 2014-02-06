@@ -5,8 +5,7 @@
             [clj-time.core :as clj-time]
             [clj-time.coerce :as clj-time-coerce]
             [clj-time.format :as time-format]
-            [clojure.set :as clj-set]
-            )
+            [clojure.set :as clj-set])
   (:use [hiccup.def]
         [hiccup.core]
         [hiccup.form :only (form-to check-box label text-area text-field hidden-field submit-button reset-button drop-down)]
@@ -21,7 +20,7 @@
     (form-to {:name "filter-column-cell-form" :class "form-horizontal"} [:get (str "/streams/data-header/"  (clj-string/replace stream-name #" " "%20"))]
       (hidden-field "fn" "filter-map-add")
       (hidden-field (str "filter-key-" filter-col) filter-val)
-      
+
       (hidden-field "filter-op-container" "")
        ;;(submit-button {:class "btn btn-link filter-col-cell"} filter-val)
        (html [:div {:class "btn-group"}
@@ -175,9 +174,6 @@
                                   (str "")
                                   (str "checked='checked'"))))] [:hr])
          [:hr])
-
-
-
 
 
 (defhtml column-map-entry [m keycols]
