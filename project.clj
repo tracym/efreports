@@ -28,6 +28,7 @@
                  [digest "1.4.3"]
                  [clj-http "0.7.8"]
                  [ring-anti-forgery "0.3.0"]
+                 [dieter "0.4.1"]
                  ]
   :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
   :ring {:handler efreports.handler/app}

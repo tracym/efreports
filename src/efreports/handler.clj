@@ -26,6 +26,7 @@
             [efreports.controllers.reports-controller :as reports-controller]
             [efreports.controllers.dashboard-controller :as dashboard-controller]
             [efreports.views.landing.landing-view :as landing]
+            [dieter.core :as dieter]
 
             )
   (:gen-class))
@@ -74,11 +75,12 @@
 (def app
 
    ;;(wrap-bootstrap-resources)
-   (wrap-resource
-
-    (handler/site app-routes {:session-store (session-store "sessions")}) "resources/public"))
+   ;;(wrap-resource
+    (asset-pipeline
+    (handler/site app-routes {:session-store (session-store "sessions")}) {:cache-mode :production}))
 
 
 (defn -main [& args]
    (let [site app]
+    (dieter/init {:cache-mode :production})
     (run-server site {:port (Integer. (or (System/getenv "PORT") "8080"))})))

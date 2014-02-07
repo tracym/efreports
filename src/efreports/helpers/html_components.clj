@@ -135,7 +135,12 @@
                   (password-field {:class "form-control"} "password")]]
 
              [:div {:class "form-group"}
-              (submit-button {:class "btn btn-primary"} "Login " )]]]])
+              (submit-button {:class "btn btn-primary"} "Login " )]]
+    [:p [:strong "User: "] "efreports_admin"  [:strong " Pass: "] "fear the admin"]
+     [:p [:a {:href "http://chinookdatabase.codeplex.com/wikipage?title=Chinook_Schema&referringTitle=Home"} "Explore the schema for the sample db"]]
+    ]
+
+   ])
 
 
 
