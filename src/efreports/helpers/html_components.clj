@@ -91,7 +91,7 @@
             [:span {:class "icon-bar"}]
             [:span {:class "icon-bar"}]
           ]
-          [:a {:class "navbar-brand" :href "#"}
+          [:a {:class "navbar-brand" :href "/"}
            "Ef Reports"
 
            ]]
@@ -103,10 +103,6 @@
                 " | "[:a {:href "/logout" :class "navbar-link"} "Log out "  [:i {:class "icon-signout"}]])
                (html  [:a {:href "/login" :class "navbar-link"} "Log in "  [:i {:class "icon-signin"}]]))
              ]
-            [:ul {:class "nav navbar-nav"}
-              [:li {:class "active"} [:a {:href "/"} "Home"]]
-              [:li [:a {:href "#"} "About"]]
-            ]
           ];;.nav-collapse -->
         ]
       ]
