@@ -53,7 +53,7 @@
     [:div {:class "container"}
       [:div {:class "row"}
         [:div {:class "col-md-12"}
-         
+
          body]]]
 
 ;;    (include-js "/javascript/jquery.simplePagination.js")

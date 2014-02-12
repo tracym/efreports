@@ -75,12 +75,12 @@
 (def app
 
    ;;(wrap-bootstrap-resources)
-   ;;(wrap-resource
-    (asset-pipeline
-    (handler/site app-routes {:session-store (session-store "sessions")}) {:cache-mode :production}))
+   (wrap-resource
+
+    (handler/site app-routes {:session-store (session-store "sessions")})  "resources/public"))
 
 
 (defn -main [& args]
    (let [site app]
-    (dieter/init {:cache-mode :production})
+    ;;(dieter/init {:cache-mode :production})
     (run-server site {:port (Integer. (or (System/getenv "PORT") "8080"))})))
