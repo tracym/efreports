@@ -26,7 +26,7 @@
             [efreports.controllers.reports-controller :as reports-controller]
             [efreports.controllers.dashboard-controller :as dashboard-controller]
             [efreports.views.landing.landing-view :as landing]
-            [dieter.core :as dieter]
+           ;; [dieter.core :as dieter]
 
             )
   (:gen-class))
