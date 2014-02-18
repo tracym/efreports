@@ -116,8 +116,7 @@
       (html [:div {:class "alert alert-danger alert-dismissable"}
                 [:button {:type "button" :class "close" :data-dismiss "alert" :aria-hidden "true"} "&times;"]
                   [:strong msg]
-                  " You could not be logged in. Ensure that your AccessNet username and password
-                   are correct and then try again."]))
+                  " You could not be logged in. The username and password for this demo are located beneath login button."]))
     [:form {:name "stream-data" :role "form" :class "form-horizontal" :method "POST" :action "auth"}
 
      [:legend "Login Information"]

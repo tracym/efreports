@@ -26,7 +26,6 @@
             [efreports.controllers.reports-controller :as reports-controller]
             [efreports.controllers.dashboard-controller :as dashboard-controller]
             [efreports.views.landing.landing-view :as landing]
-           ;; [dieter.core :as dieter]
 
             )
   (:gen-class))
@@ -34,9 +33,10 @@
 
 (defn authenticate
   [session login-params]
-
+  (if (and (= (login-params :username) "efreports_admin")
+           (= (login-params :password) "fear the admin"))
     (assoc (redirect "/streams") :session (assoc session :username (login-params :username)))
-    ;;(assoc (redirect "/login") :flash "Login Failed!")
+    (assoc (redirect "/login") :flash "Login Failed!"))
 )
 
 (defn logout []
