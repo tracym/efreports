@@ -63,7 +63,7 @@
   ;;(GET "/session" {session :session} (view-session session))
   streams-controller/routes
   reports-controller/routes
-  dashboard-controller/routes
+  ;;dashboard-controller/routes
   (route/not-found (common "Not Found" nil (html [:h1 "Not Found"]))))
 
 ;; (def app

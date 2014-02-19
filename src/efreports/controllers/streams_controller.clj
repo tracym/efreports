@@ -49,17 +49,17 @@
       (if-not create-return
         (assoc (ring/redirect (str "/streams/new")) :flash "SQL contains illegal keywords")
         (ring/redirect (str "/streams/edit/" (stream :stream-name)))))
-    (ring/redirect "/")))
+    (ring/redirect "/streams")))
 
 (defn delete-stream [stream]
   (stream-model/delete-stream (stream :stream))
-  (ring/redirect "/")
+  (ring/redirect "/streams")
   )
 
 
 
 (defn data-stream-body [stream-params]
-   (println "huh? " (stream-params :fn))
+
   (let [stream (clj-str/replace (stream-params :stream) #"%20" " ")]
 
     (stream-manip-store/store-request-manip stream stream-params)
@@ -176,7 +176,7 @@
           (stream-sess/init-stream-session (colmap-data :username) (found-stream :stream-name))
           (stream-sess/write-stream-keys (colmap-data :username) (found-stream :stream-name) :column-map-ordering
                                          (stream-manip/init-column-map-ordering ((stream-model/find-stream-map (found-stream :stream-name)) :column-map) 0))
-          (ring/redirect "/"))))))
+          (ring/redirect "/streams"))))))
 
 
 ;;jq: $.ajax({url:"/streams/update-visibility/", type: "POST", data:
