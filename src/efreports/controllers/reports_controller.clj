@@ -40,7 +40,7 @@
   (let [user (report-params :username)
         report-name (report-params :report-name)
 
-        report-obj (report-model/find-latest-report-map-by-user-and-report user report-name)
+        report-obj (report-model/find-latest-report-map-by-report user report-name)
         stream-obj (stream-model/find-stream-map (report-obj :base-stream))
 
         base-rs (data/cached-query user (report-obj :last-refresh) (stream-obj :sql))
@@ -97,7 +97,7 @@
 
 (defn refresh-report [report-params]
   (println "report refresh params" report-params)
-  (let [report-obj (report-model/find-latest-report-map-by-user-and-report
+  (let [report-obj (report-model/find-latest-report-map-report
                                                                   (report-params :username)
                                                                   (report-params :report-name))]
     (report-model/refresh-report report-obj)

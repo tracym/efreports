@@ -24,7 +24,7 @@
   (let [uri (get (System/getenv) "MONGOHQ_URL" (str  "mongodb://foo:bar@127.0.0.1/" dbname))
         auth-map (parse-mongo-url uri)
         ]
-    
+
     (m/connect-via-uri! uri)
     (m/use-db! (auth-map :db))
     (m/authenticate (m/get-db (auth-map :db)) (auth-map :user) (.toCharArray (auth-map :password)))
@@ -68,6 +68,18 @@
       (mq/fields [:date-created :report-name :items-per-page :stream-manipulations :last-refresh :base-stream])
       (mq/sort (array-map :date-created -1))
       (mq/limit 1))))
+
+
+(defn find-latest-report-map-by-report
+  [user report-name]
+  (reports-connect "efreports")
+  (first
+    (mq/with-collection "reports"
+      (mq/find {:report-name report-name})
+      (mq/fields [:date-created :report-name :items-per-page :stream-manipulations :last-refresh :base-stream])
+      (mq/sort (array-map :date-created -1))
+      (mq/limit 1))))
+
 
 (defn all []
   (reports-connect "efreports")
