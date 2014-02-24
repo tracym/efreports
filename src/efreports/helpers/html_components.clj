@@ -91,7 +91,7 @@
             [:span {:class "icon-bar"}]
             [:span {:class "icon-bar"}]
           ]
-          [:a {:class "navbar-brand" :href "/"}
+          [:a {:class "navbar-brand" :href (if username  "/streams" "/")}
            "Ef Reports"
 
            ]]
