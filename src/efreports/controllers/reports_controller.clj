@@ -97,7 +97,7 @@
 
 (defn refresh-report [report-params]
   (println "report refresh params" report-params)
-  (let [report-obj (report-model/find-latest-report-map-report
+  (let [report-obj (report-model/find-latest-report-map-by-report
                                                                   (report-params :username)
                                                                   (report-params :report-name))]
     (report-model/refresh-report report-obj)
