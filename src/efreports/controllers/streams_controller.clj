@@ -31,6 +31,7 @@
     (when-not (empty? found-stream) found-stream)))
 
 (defn index [session]
+  (println "wtf " session)
   (view/index (stream-model/all-sorted-by-name) (report-model/all-sorted-by-name) (session :username)))
 
 (defn new-stream [stream]
