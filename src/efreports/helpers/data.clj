@@ -5,44 +5,23 @@
               [clojure.core.memoize :as memo])
     (:import com.mchange.v2.c3p0.ComboPooledDataSource))
 
+(comment 
+ (defn sort-column-map [colmap column-map-ordering]
+   (if (not (empty? column-map-ordering))
+     (into (sorted-map-by (fn [lkey, rkey] (compare ((first (filter #(= (keyword (% :name)) lkey) column-map-ordering)) :order)
+                                                   ((first (filter #(= (keyword (% :name)) rkey) column-map-ordering)) :order))))
+           (into {} (map #(assoc {} (keyword (% :name)) (% :friendly-name)) column-map-ordering)))
+
+     (colmap))))
 
 (defn sort-column-map [colmap column-map-ordering]
   (if (not (empty? column-map-ordering))
-    (into (sorted-map-by (fn [lkey, rkey] (compare ((first (filter #(= (keyword (% :name)) lkey) column-map-ordering)) :order)
-                                                 ((first (filter #(= (keyword (% :name)) rkey) column-map-ordering)) :order))))
-      (into {} (map #(assoc {} (keyword (% :name)) (% :friendly-name)) column-map-ordering)))
-
-  (colmap)))
-
-;; (defn sorted-row-vals [rs-map column-map-ordering]
-;;   ;;(into (sorted-map) (sort-by key compare rs-map))
-;;   (if (not (empty? column-map-ordering))
-;;     (into {} (mapcat #(assoc {} (keyword (% :name)) (% :friendly-name)) (sort-by :order column-map-ordering)))
-;;     rs-map)
-;;   )
-
-(defn sorted-row-vals [rs-map column-map-ordering]
-  (into (sorted-map) (sort-by key compare rs-map)))
-
-(defn keys-to-strings [key-list]
-  (map name key-list))
-
-;; (defn column-headers [rs]
-;;   (keys-to-strings (keys (first rs))))
-
-;; (defn rs-column-headers [rs colmap]
-;;   (vals (vals (zipmap (keys (first rs)) (sort-column-map colmap)))))
-
-;; (defn rs-column-keys [rs colmap]
-;;   (map name (keys (vals (zipmap (keys (first rs)) (sort-column-map colmap))))))
-
-
-(defn columns [rs colmap]
-  (let [rs-keys (keys (first rs))]
-    (let [cols (select-keys colmap (keys (first rs)))]
-     (if (some #(when (= % :total) %) rs-keys)
-      (merge cols {:total "total"})
-      cols))))
+    (->> column-map-ordering
+         (map #(assoc {} (keyword (% :name)) (% :friendly-name)))
+         (into {})
+         (into (sorted-map-by (fn [lkey, rkey] (compare ((first (filter #(= (keyword (% :name)) lkey) column-map-ordering)) :order)
+                                                       ((first (filter #(= (keyword (% :name)) rkey) column-map-ordering)) :order))))))
+   (colmap)))
 
 
 ;;The code below to generate comparators for mulitple keys in a collection is taken from:
@@ -58,12 +37,6 @@
               (if (and (zero? result) more)
                   (recur more)
                   result)))))
-
-(defmacro generate-comp-from-map
-  ;;Generates a comparator using compare-by and sort-map (which is a map of keys to asc or desc comparisons)
-  [sort-map]
-  `(apply compare-by (flatten (vec ~sort-map))))
-
 
 (def db
   {:classname "org.postgresql.Driver"
@@ -106,43 +79,7 @@
 
 (def cached-query-memo (memo/fifo cached-query {} :fifo/threshold 50))
 
-(defn open-csv [csv-filename]
-  	(csv/parse-csv (slurp csv-filename)))
-
-
-(defn csv-header-keys [csv-seq]
-		(vec (map keyword (merge (first csv-seq) "id")))
-)
-
-
-(defn csv-data [csv-seq]
-		(vec (rest csv-seq))
-)
-
-;; pass the full path to a csv and a get map of column headings to row values
-(defn csv-to-map [csv-seq]
-	(map (fn [row] (zipmap (csv-header-keys csv-seq) row))
-										(map #(merge %1 %2) (csv-data csv-seq) (iterate inc 0)))
-)
-
-(defn csv-seq-to-csv [csv-seq]
-  (concat (csv/write-csv [(map name (keys (first csv-seq)))])
-          (csv/write-csv (for [m csv-seq] (vec (map str (vals m))))
-            )))
-
-(defn diff-by-key [lseq-map rseq-map keycol]
-  (difference (project (set lseq-map) [keycol]) (project (set rseq-map) [keycol])))
-
-; (defn left-join [lseq-map rseq-map keycol]
-
-;   (join lseq-map rseq-map [keycol])
-
-; )
-
 (def num-operator-map {"eq" = "ne" not= "gt" > "lt" < })
-
-
-
 
 (defn filter-comparison
   "crude"
@@ -192,34 +129,6 @@
   (merge-with #(or %1 %2) lmap
     (get-empty-map lmap rmap)))
 
-
-(defn map-difference [m1 m2]
-  (let [ks1 (set (keys m1))
-        ks2 (set (keys m2))
-        ks1-ks2 (difference ks1 ks2)
-        ks2-ks1 (difference ks2 ks1)
-        ks1*ks2 (intersection ks1 ks2)]
-    (merge (select-keys m1 ks1-ks2)
-           (select-keys m2 ks2-ks1)
-           (select-keys m1
-                        (remove (fn [k] (= (m1 k) (m2 k)))
-                                ks1*ks2)))))
-
-(defn pmerge-keyed-map-seq [lmap rmap keycol]
-  (pmap
-    (fn [m] (let [res (filter #(= (% keycol) (m keycol)) rmap)]
-             (if (empty? res)
-              (merge-map-with-empty m (first rmap))
-              (merge m (first res))))) lmap))
-
-(defn merge-keyed-map-seq [lmap rmap keycol]
-  (for [m lmap]
-    (let [res (filter #(= (% keycol) (m keycol)) rmap)]
-      (if (empty? res)
-        (merge-map-with-empty m (first rmap))
-        (map-difference m (first res))))))
-
-
 (defn left-join-multi-key [lmap rmap keycols]
   (let [keym (map (fn [o] (select-keys o keycols)) lmap)]
     (map (fn [n] (let [res (filter-seq-by-multiple-map-items rmap n)]
@@ -236,17 +145,6 @@
   [x-key y-key row]
     (into (sorted-map) (mapcat #(assoc {y-key (% y-key)} (keyword (% x-key)) (% :total)) row)))
 
-
-;; (defn pivot-table
-;;   [x-key y-key totalled-rs]
-;;   (let [y-index (index totalled-rs [y-key])
-;;        distinct-x-vals (map #((first %) x-key)
-;;                              (index totalled-rs [x-key]))
-
-;;        total-groups (map #(filter-seq-by-multiple totalled-rs %)
-;;                             (project totalled-rs [x-key]))]
-
-;;       (map #(pivot-row x-key y-key %) total-groups)))
 
 (defn pivot-table
   [x-key y-key totalled-rs]

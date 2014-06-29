@@ -26,7 +26,6 @@
             [efreports.controllers.reports-controller :as reports-controller]
             [efreports.controllers.dashboard-controller :as dashboard-controller]
             [efreports.views.landing.landing-view :as landing]
-
             )
   (:gen-class))
 
@@ -66,11 +65,6 @@
   ;;dashboard-controller/routes
   (route/not-found (common "Not Found" nil (html [:h1 "Not Found"]))))
 
-;; (def app
-;;    (wrap-params (reload/wrap-reload (wrap-bootstrap-resources
-;;                                     (with-security authorize
-;;     (handler/site app-routes {:session-store (session-store "sessions")}))))))
-
 
 (def app
 
@@ -78,6 +72,8 @@
    (wrap-resource
 
     (handler/site app-routes {:session-store (session-store "sessions")})  "resources/public"))
+
+
 
 
 (defn -main [& args]

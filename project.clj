@@ -3,13 +3,13 @@
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [compojure "1.1.5"]
-				         [com.novemberain/monger "1.4.2"]
-				         [lib-noir "0.3.3"]
+		 [com.novemberain/monger "1.4.2"]
+		 [lib-noir "0.3.3"]
                  [hiccup "1.0.2"]
                  [org.clojure/java.jdbc "0.2.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
-		 		         [clojure-csv/clojure-csv "2.0.0-alpha1"]
-		 		         [net.sourceforge.jtds/jtds "1.2.4"]
+		 [clojure-csv/clojure-csv "2.0.0-alpha1"]
+		 [net.sourceforge.jtds/jtds "1.2.4"]
                  [hiccup-bootstrap "0.1.1"]
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [c3p0/c3p0 "0.9.1.2"]
@@ -31,19 +31,20 @@
                  ;;[dieter "0.4.1"]
                  ]
   :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
-  :ring {:handler efreports.handler/app}
+  :ring {:handler efreports.handler/app :init efreports.helpers.mongo-init/mongo-connect}
   :min-lein-version "2.0.0"
   :repl-options {:init (do
                         (use 'efreports.helpers.stream-manipulations)
                         (use 'efreports.helpers.data)
+                        (use 'efreports.helpers.mongo-init)
                         (require '[efreports.helpers.stream-session :as sess]
                                  '[efreports.models.streams-model :as stream-model]
                                  '[efreports.models.reports-model :as report-model]
                                  '[clojure.string :as clj-string]
                                  '[clojure.set :as clj-set])
-                        (stream-model/streams-connect "test")
-                        (report-model/reports-connect "test")
+                        
                         (use 'clojure.pprint)
+                        (mongo-connect)
                          )}
   :main ^:skip-aot efreports.handler
   :uberjar-name "efreports-standalone.jar"

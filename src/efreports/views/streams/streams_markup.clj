@@ -12,7 +12,7 @@
         [efreports.helpers.html-components]
         [efreports.helpers.tag]
         [efreports.helpers.stream-session :only [column-map-ordering]]
-        [efreports.helpers.data :only [sort-column-map, columns, sorted-row-vals]])
+        [efreports.helpers.data :only [sort-column-map]])
 )
 
 (defhtml filter-column-cell [stream-name filter-col filter-val]
