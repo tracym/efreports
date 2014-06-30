@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -jar target/efreports-standalone.jar
+web: lein ring server-headless $PORT
