@@ -5,14 +5,7 @@
               [clojure.core.memoize :as memo])
     (:import com.mchange.v2.c3p0.ComboPooledDataSource))
 
-(comment 
- (defn sort-column-map [colmap column-map-ordering]
-   (if (not (empty? column-map-ordering))
-     (into (sorted-map-by (fn [lkey, rkey] (compare ((first (filter #(= (keyword (% :name)) lkey) column-map-ordering)) :order)
-                                                   ((first (filter #(= (keyword (% :name)) rkey) column-map-ordering)) :order))))
-           (into {} (map #(assoc {} (keyword (% :name)) (% :friendly-name)) column-map-ordering)))
 
-     (colmap))))
 
 (defn sort-column-map [colmap column-map-ordering]
   (if (not (empty? column-map-ordering))
