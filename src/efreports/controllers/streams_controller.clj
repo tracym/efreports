@@ -30,20 +30,28 @@
   (let [found-stream (stream-model/find-stream-map (stream :stream))]
     (when-not (empty? found-stream) found-stream)))
 
-(defn index [session]
-  (println "wtf " session)
+
+(defn index
+  "List of streams"
+  [session]
   (view/index (stream-model/all-sorted-by-name) (report-model/all-sorted-by-name) (session :username)))
 
-(defn new-stream [stream]
+(defn new-stream
+  "A new stream"
+  [stream]
   (view/new-stream stream))
 
-(defn edit-stream [stream-map]
+(defn edit-stream
+  "Edit one stream"
+  [stream-map]
   (let [found-stream (stream-model/find-stream-map (stream-map :stream))]
     (when-not (empty? found-stream)
       (view/edit-stream (assoc found-stream :flash (stream-map :flash)) (stream-map :username)))))
 
-(defn create-stream [stream]
-  (prn stream)
+(defn create-stream
+  "Create a new stream"
+  [stream]
+ 
   (if-not (empty? stream)
     (let [create-return (stream-model/create stream)
           remove-return (stream-sess/remove-stream (stream :username) (stream :stream-name))]
@@ -59,10 +67,15 @@
 
 
 
-(defn data-stream-body [stream-params]
+(defn data-stream-body
+  "Javascript in the data-stream-header calls this method to populate the data in the body.
+   This needs to be replaced with something far less primitive."
+  [stream-params]
 
   (let [stream (clj-str/replace (stream-params :stream) #"%20" " ")]
 
+    ;;Ensure that any manipulations to the stream (passed through
+    ;;stream-params make it into the session store.
     (stream-manip-store/store-request-manip stream stream-params)
 
     (let [found-stream (stream-model/find-stream-map stream)
@@ -70,11 +83,16 @@
           colmap (found-stream :column-map)
           user (stream-params :username)
 
+          ;;Pull data and note memoization. Fresh data is pulled when
+          ;;the last refresh date changes for a single user
           rs (data/cached-query-memo user (stream-sess/stream-last-refresh user stream-name)
                                              (found-stream :sql))
 
+          ;;Pull session manipulations
           stream-attr (stream-sess/stream-attributes user stream-name)
 
+          ;;Pass them to function that applies them along with the
+          ;;tabular data in rs
           manip-rs     (stream-manip/apply-stored-manip stream-attr rs)
 
 
@@ -84,14 +102,17 @@
           supplanted-manip-data (merge {:name stream-name :user user
                                         :rs-keys (keys (first manip-rs))} stream-attr)
 
-
+          ;; a column map ordering that is reflective of the
+          ;; manipulations we are performing (e.g. a totalled result
+          ;; set should have a column map ordering with a total column).
           manip-cmo  (if-not (stream-sess/stream-empty? user stream-name)
                                              (stream-manip/manip-column-map-ordering supplanted-manip-data colmap)
                                              (stream-sess/column-map-ordering user stream-name))
 
-
+          ;; store the result in a session
           write-session-result (stream-sess/write-stream-keys user stream
                                                               :column-map-ordering manip-cmo)
+          ;;
           related-streams (stream-model/related-streams (found-stream :stream-name) (found-stream :key-columns))
 
 
@@ -117,19 +138,24 @@
                   (ring/content-type (ring/response wb-bytes) "application/vnd.ms-excel")))
 
               (view/stream-data-body stream-params paginated-rs per page (count manip-rs)
-                                     related-streams
+                                     related-streams ;;this arg is no longer necessary
                                      manip-column-map
                                      (if (contains? stream-params :fn)
                                                (stream-params :fn) ""))))))
 
-;Start by rendering the blank data stream view template. From here create more
-;methods to update the progress of data retrieval and then render the data
-;part of the async stream retrieval functionality
-(defn data-stream-header [stream-params]
+
+(defn data-stream-header
+  "Start by rendering the blank data stream view template."
+  [stream-params]
 
     (stream-manip-store/store-request-manip (stream-params :stream) stream-params)
+
     (let [found-stream (get-stream-meta stream-params)]
        (stream-sess/init-stream-session (stream-params :username) (found-stream :stream-name))
+
+       ;; The mod-stream-params gunk is intended to merge all the
+       ;; columns in streams that are mapped together into one big
+       ;; column map
        (let [mod-stream-params (if-let [ms ((stream-sess/stream-attributes
                                              (stream-params :username) (found-stream :stream-name)) :mapped-streams)]
                                 (if-not (empty? ms)
@@ -139,9 +165,9 @@
                                             (reduce merge (map (fn [x] ((stream-model/find-stream-map x) :column-map)) ms)))})
                                   found-stream
                                   )
-                                  found-stream)]
-        (println (str "modified stream param " mod-stream-params))
-
+                                found-stream)]
+         
+        ;;stop rendering the header if the user is requesting a spreadsheet
         (if (contains? stream-params :format)
               (when (= (stream-params :format) "xls")
                  (data-stream-body stream-params))
@@ -153,7 +179,9 @@
 
 
 
-(defn update-stream [stream-params]
+(defn update-stream
+  "Update a stream"
+  [stream-params]
   (prn stream-params)
   (let [found-stream (stream-model/find-stream-map (stream-params :stream-name))]
       (let [update-result (stream-model/update found-stream stream-params)]
@@ -161,33 +189,40 @@
           (ring/redirect (str "/streams/data-header/" (found-stream :stream-name)))
           (assoc (ring/redirect (str "/streams/edit/" (found-stream :stream-name))) :flash "SQL contains illegal keywords")))))
 
-(defn update-column-map [colmap-data]
-  (println "when is this happening?")
-  (let [stream-map (select-keys colmap-data [:stream])]
-      (let [found-stream (stream-model/find-stream-map (stream-map :stream))]
-        (when-not (empty?  found-stream)
-          (let [keycols (stream-manip-store/extract-keycol-params colmap-data)
-                colmaps (into {} (filter
-                                   #(when-not
-                                      (. (str (key %)) startsWith ":key_col_ind_") %) colmap-data))]
-          (stream-model/update-keycols found-stream keycols)
-          (stream-model/update-column-map found-stream colmaps)
-          ;;overwrite the session column map ordering with new column
-          ;;map orderings
-          (stream-sess/init-stream-session (colmap-data :username) (found-stream :stream-name))
-          (stream-sess/write-stream-keys (colmap-data :username) (found-stream :stream-name) :column-map-ordering
-                                         (stream-manip/init-column-map-ordering ((stream-model/find-stream-map (found-stream :stream-name)) :column-map) 0))
-          (ring/redirect "/streams"))))))
+(defn update-column-map
+  "Controls updating column-map from the Streams>Edit page"
+  [colmap-data]
+  (let [stream-map (select-keys colmap-data [:stream])
+        found-stream (stream-model/find-stream-map (stream-map :stream))]
+
+    (when-not (empty?  found-stream)
+      (let [keycols (stream-manip-store/extract-keycol-params colmap-data)
+            colmaps (into {} (filter
+                              #(when-not
+                                   (. (str (key %)) startsWith ":key_col_ind_") %) colmap-data))]
+        (stream-model/update-keycols found-stream keycols)
+        (stream-model/update-column-map found-stream colmaps)
+        ;;overwrite the session column map ordering with new column
+        ;;map orderings
+        (stream-sess/init-stream-session (colmap-data :username) (found-stream :stream-name))
+        (stream-sess/write-stream-keys (colmap-data :username) (found-stream :stream-name) :column-map-ordering
+                                       (stream-manip/init-column-map-ordering
+                                        ((stream-model/find-stream-map (found-stream :stream-name)) :column-map) 0))
+        (ring/redirect "/streams")))))
 
 
 ;;jq: $.ajax({url:"/streams/update-visibility/", type: "POST", data:
 ;; {stream: "test-rms-id", column_name: "last_modified", visibility: false, column_count: "6" }}).done(function( msg ) {alert( "Data Saved: " + msg );});
 
-(defn update-column-visibility [update-params]
+(defn update-column-visibility
+  "Handles ajax request to remove hide/show a column in the table view"
+  [update-params]
   (let [stream (clj-str/replace (update-params :stream) #"%20" " ")
         visible (Boolean/valueOf (update-params :visibility))
         col-count (data/parse-int (update-params :column_count))]
 
+    ;;columns are moved to the back of the ordering when hidden and
+    ;;moved to the first visible position when shown
     (if visible
       (stream-sess/move-column-to-position (update-params :username) stream
                                     ((stream-sess/stream-attributes (update-params :username) stream) :column-map-ordering)
@@ -199,7 +234,10 @@
     (data-stream-body (merge {:stream stream} (select-keys update-params [:per :page :username]))) ;;preserve pagination
   ))
 
-(defn update-column-map-tab [update-params]
+(defn update-column-map-tab
+  "This is in charge of updating the tab panes' data after ajax manipulations
+   (e.g. user maps stream and then filter and totals tab need to be updated to include the additional columns."
+  [update-params]
   (let [stream (clj-str/replace (update-params :stream) #"%20" " ")
         tab (update-params :tab)
         stream-attrs (stream-sess/stream-attributes (update-params :username) stream)
@@ -209,7 +247,9 @@
         found-stream  (stream-model/find-stream-map stream)
         base-column-map (found-stream :column-map)
         effective-colmap   (into (sorted-map) (if-not (empty? mapped-streams)
-                                                  (merge base-column-map (reduce merge (map (fn [x] ((stream-model/find-stream-map x) :column-map)) mapped-streams)))
+                                                (merge base-column-map
+                                                       (reduce merge (map (fn [x] ((stream-model/find-stream-map x) :column-map))
+                                                                          mapped-streams)))
                                                          base-column-map))]
 
     (if (= tab "total-columns")

@@ -53,7 +53,8 @@
          (sm/rs-to-report-table (stream-params :stream)
                                   (if (contains? stream-params :to-stream)(stream-params :to-stream) (str ""))
                                   rs
-                                  (map name ((stream-sess/stream-attributes (stream-params :username) (stream-params :stream)) :filter-cols))
+                                  (map name ((stream-sess/stream-attributes (stream-params :username)
+                                                                            (stream-params :stream)) :filter-cols))
 ;;                                       (sort-column-map colmap
 ;;                                                        (stream-sess/column-map-ordering :actual-username
 ;;                                                                                         (stream-params :stream)))

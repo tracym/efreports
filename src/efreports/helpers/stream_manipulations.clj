@@ -9,25 +9,36 @@
   )
 
 
-(defn nil-or-empty? [thing]
-  (or (nil? thing) (empty? thing))
-  )
+(defn nil-or-empty?
+  "Almost shorthand"
+  [thing]
+  (or (nil? thing) (empty? thing)))
 
-(defn paginate-stream-rs [rs per page]
+(defn paginate-stream-rs
+  "Pagination. Per = number of items per page, Page = current page, rs = data (sequence of maps)"
+  [rs per page]
   (take-last per (take (* page per) rs)))
 
-(defn total-rs [key-vec rs]
+(defn total-rs
+  "Total/group the result set by key-vec add a total field"
+  [key-vec rs]
   (for [m (group-by #(select-keys % key-vec) rs)]
       (merge (first m) {:total (count (val m))})))
 
-(defn sort-rs-from-map [sess-sort-map rs]
-   (if-not (empty? sess-sort-map)
+(defn sort-rs-from-map
+  "Sort the rs"
+  [sess-sort-map rs]
+  (if-not (empty? sess-sort-map)
+    ;; The trick here is to associate the textual data from the
+    ;; session with a sort direction - asc and desc
     (let [sm (into {} (for [m sess-sort-map] {(key m) (ns-resolve 'efreports.helpers.data (symbol (val m)))}))]
       (sort (apply data/compare-by (flatten (vec sm))) rs))
     rs))
 
 
-(defn column-maps-for-streams [stream-list]
+(defn column-maps-for-streams
+  "Given a list of streams, bring back all the column maps associated with them"
+  [stream-list]
   (->> stream-list
         (map #((stream-model/find-stream-map %) :column-map))
         (reduce merge)))
@@ -42,9 +53,13 @@
 
 
 (defn insert-column-into-column-map-ordering
+  "The tricky part of this is inserting the column and pushing every other
+   column back in the column map ordering"
   [column-map-ordering-instance column-map-ordering position]
-  (let [cmo column-map-ordering
+
+  (let [cmo column-map-ordering ;readability
         cmo-inst column-map-ordering-instance]
+    
     (when-not (and (= (- position 1) (cmo-inst :order))
                    (nil? cmo)
                    (empty? cmo))
@@ -61,9 +76,12 @@
 
             (filter #(> (% :order) from-position) cmo))))))
 
-(defn arrange-total-columns [column-map-ordering total-cols]
+(defn arrange-total-columns
+  "Move total columns to the front. Also, make sure the total column butts up against
+   the last total col"
+  [column-map-ordering total-cols]
     (let [total-position (+ (count total-cols) 1)
-          total-col-strings (doall (map #(clj-string/replace (str %) #":" "") total-cols))
+          total-col-strings (doall (map #(clj-string/replace (str %) #":" "") total-cols)) ;force side effects
           col-instances (remove nil? (doall (map (fn [x] (first (filter #(= (% :name) x) column-map-ordering))) total-col-strings)))]
 
         (let [new-cmo (reduce #(insert-column-into-column-map-ordering %2 %1 1)
@@ -85,6 +103,7 @@
 
 
 (defn concat-column-map-ordering
+  "For adding column map orderings together - useful when mapping/joining streams"
   [column-map-ordering mapped-cols]
     (let [catted-cmo (when-not (and (empty? mapped-cols) (empty? column-map-ordering))
                       (let [to-append (init-column-map-ordering mapped-cols (+ (count column-map-ordering) 1))]
@@ -92,13 +111,17 @@
       catted-cmo))
 
 
-(defn generate-pivot-column-map-ordering [column-map y-key]
+(defn generate-pivot-column-map-ordering
+  "We need to move the column for y axis to the front of the column map ordering"
+  [column-map y-key]
   (let [init-colmap (init-column-map-ordering column-map 0)]
     (insert-column-into-column-map-ordering  (first (filter #(= (% :name) (name y-key)) init-colmap))
                                                      init-colmap 1)))
 
 
 (defn manip-column-map
+  "This handles all the possible manipulations to the column map that need to happen
+   in order to maintain consistency with the manipulated data"
   [manip-data column-map-ordering]
    (let [streams-to-map (manip-data :mapped-streams)
          pivot-totals (manip-data :pivot-totals)
@@ -140,11 +163,7 @@
 
                              (if supplied-cmo
                                (let [existing-keys (set (map #(keyword (% :name)) supplied-cmo))
-                                     diff (clj-set/difference existing-keys (set rs-keys))
-                                     ;;debug (println "existing keys " existing-keys)
-                                     ;;debug1 (println "rs keys " rs-keys)
-                                     ;;debug2 (println "diff keys " diff)
-                                     ]
+                                     diff (clj-set/difference existing-keys (set rs-keys))]
                                      (if (empty? diff)
                                        supplied-cmo
                                        (generate-pivot-column-map-ordering pivot-column-map (pivot-totals :y-key))))
@@ -167,7 +186,9 @@
                      base-col-count (count post-total-cmo)]
 
                     (if (or (= base-col-count total-col-count)
-                            (= base-col-count (+ total-col-count 1))) ;; don't concatentate mapped column maps if we already have. Also check for total column
+                            (= base-col-count (+ total-col-count 1)))
+                      ;; don't concatentate mapped column maps if we already have.
+                      ;; Also check for total column
                          post-total-cmo
                          (concat-column-map-ordering post-total-cmo mapped-cols)))
                 post-total-cmo)))
@@ -187,6 +208,10 @@
         sort-map (manip-data :sort-map)
         pivot-totals (manip-data :pivot-totals)
         ]
+    ;; The pivot table functionality was bolted on at the last minute.
+    ;; So we deal with it seperately for now. To do this properly would
+    ; require the ability to pivot any result set - even one that has
+    ; already been pivotted
     (if (not (nil-or-empty? pivot-totals))
       (let [pivot-x (keyword (pivot-totals :x-key))
             pivot-y (keyword (pivot-totals :y-key))

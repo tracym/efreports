@@ -18,11 +18,13 @@
 
 
 (defn create-or-update-report
+  "Create or update a report."
   [report-params]
 
   (let [user (report-params :username)
         stream (report-params :stream)
-        report-name (report-params :report_name) ;;hopefullly we can limit the use of underscores to this function. This because of the javascript/ajax
+        ;;hopefullly we can limit the use of underscores to this function. This because of the javascript/ajax
+        report-name (report-params :report_name)
         stream-state (stream-sess/stream-attributes user stream)
         items-per (report-params :report_items_per)
         existing-report (report-model/find-report-map (report-params :report_name))]
@@ -35,6 +37,7 @@
             (report-view/create-report report-params)))))
 
 (defn report-body
+  "The data part of the report"
   [report-params]
 
   (let [user (report-params :username)
@@ -95,8 +98,7 @@
 
 
 
-(defn refresh-report [report-params]
-  (println "report refresh params" report-params)
+(defn refresh-report [report-params] 
   (let [report-obj (report-model/find-latest-report-map-by-report
                                                                   (report-params :username)
                                                                   (report-params :report-name))]
