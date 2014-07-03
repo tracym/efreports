@@ -129,10 +129,6 @@
               (merge-map-with-empty (first (filter-seq-by-multiple-map-items lmap n)) (first rmap))
               (merge (first (filter-seq-by-multiple-map-items lmap n)) (first res))))) keym)))
 
-
-
-
-
 (defn pivot-row
   ;; PRE: :total is the data we want to see in the pivot
   [x-key y-key row]

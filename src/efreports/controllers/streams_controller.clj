@@ -2,6 +2,7 @@
   (:use [compojure.core :only (defroutes GET POST)])
   (:require [clojure.string :as clj-str]
             [ring.util.response :as ring]
+            [ring.util.codec :as ring-codec]
             [ring.middleware.params :as params]
             [ring.middleware.keyword-params :as kp]
             [efreports.views.streams.streams-view :as view]
@@ -72,7 +73,7 @@
    This needs to be replaced with something far less primitive."
   [stream-params]
 
-  (let [stream (clj-str/replace (stream-params :stream) #"%20" " ")]
+  (let [stream (ring-codec/url-decode (stream-params :stream))]
 
     ;;Ensure that any manipulations to the stream (passed through
     ;;stream-params make it into the session store.
@@ -182,7 +183,6 @@
 (defn update-stream
   "Update a stream"
   [stream-params]
-  (prn stream-params)
   (let [found-stream (stream-model/find-stream-map (stream-params :stream-name))]
       (let [update-result (stream-model/update found-stream stream-params)]
         (if update-result
@@ -217,7 +217,7 @@
 (defn update-column-visibility
   "Handles ajax request to remove hide/show a column in the table view"
   [update-params]
-  (let [stream (clj-str/replace (update-params :stream) #"%20" " ")
+  (let [stream (ring-codec/url-decode (update-params :stream))
         visible (Boolean/valueOf (update-params :visibility))
         col-count (data/parse-int (update-params :column_count))]
 
@@ -238,7 +238,7 @@
   "This is in charge of updating the tab panes' data after ajax manipulations
    (e.g. user maps stream and then filter and totals tab need to be updated to include the additional columns."
   [update-params]
-  (let [stream (clj-str/replace (update-params :stream) #"%20" " ")
+  (let [stream (ring-codec/url-decode (update-params :stream))
         tab (update-params :tab)
         stream-attrs (stream-sess/stream-attributes (update-params :username) stream)
         total-cols (stream-attrs :total-cols)

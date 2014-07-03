@@ -1,9 +1,9 @@
 (ns efreports.models.streams-model
   (:require [monger.core :as m]
-  					[monger.collection :as mc]
+  	    [monger.collection :as mc]
             [monger.query :as mq]
             [efreports.helpers.data :as h])
-  (:use monger.operators)
+  (:use [monger.operators])
   (:import [org.bson.types ObjectId]
            [com.mongodb DB WriteConcern]))
 
@@ -11,7 +11,7 @@
 (defn now [] (java.util.Date.))
 
 (defn sql-contains-illegal-keywords? [sql]
-  (re-find #"(?i)\binsert\b|\bdelete\b|\bupdate\b" sql))
+  (re-find #"(?i)\binsert\b|\bdelete\b|\bupdate\b|\balter\b" sql))
 
 (defn all []
   (mc/find-maps "streams"))
@@ -35,7 +35,7 @@
        nil)))
 
 (defn find-stream-key-cols [stream-name]
-  ;;(streams-connect "efreports")
+  
   (when (not (empty? stream-name))
     ((find-stream-map stream-name) :key-columns)))
 
@@ -50,7 +50,9 @@
 (defn update [old-stream new-stream]
   (if (sql-contains-illegal-keywords? (new-stream :sql))
     nil
-    (mc/update "streams" {:_id (old-stream :_id)} (merge (dissoc new-stream :flash) {:column-map (stream-column-map (new-stream :sql))}))))
+    (mc/update "streams" {:_id (old-stream :_id)}
+               (merge (dissoc new-stream :flash)
+                      {:column-map (stream-column-map  (new-stream :sql))}))))
 
 (defn update-column-map [stream colmap-post]
     (mc/update "streams" {:_id (stream :_id)}
@@ -73,12 +75,11 @@
   (if (sql-contains-illegal-keywords? (stream :sql))
     nil
     (mc/insert "streams" { :_id (ObjectId.)
-                             :stream-name (stream :stream-name)
-                             :description (stream :description)
-                             :sql (stream :sql)
-                             :column-map ;;(h/sort-column-map
-                                          (stream-column-map (stream :sql))
-                             :date-created (now)
-                             })))
+                          :stream-name (stream :stream-name)
+                          :description (stream :description)
+                          :sql (stream :sql)
+                          :column-map (stream-column-map (stream :sql))
+                          :date-created (now)
+                          })))
 
 

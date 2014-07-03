@@ -5,7 +5,9 @@
             [clj-time.core :as clj-time]
             [clj-time.coerce :as clj-time-coerce]
             [clj-time.format :as time-format]
-            [clojure.set :as clj-set])
+            [clojure.set :as clj-set]
+            [ring.util.codec :as ring-codec]
+            )
   (:use [hiccup.def]
         [hiccup.core]
         [hiccup.form :only (form-to check-box label text-area text-field hidden-field submit-button reset-button drop-down)]
@@ -17,7 +19,8 @@
 
 (defhtml filter-column-cell [stream-name filter-col filter-val]
   [:td {:class filter-col}
-    (form-to {:name "filter-column-cell-form" :class "form-horizontal"} [:get (str "/streams/data-header/"  (clj-string/replace stream-name #" " "%20"))]
+   (form-to {:name "filter-column-cell-form" :class "form-horizontal"}
+            [:get (str "/streams/data-header/"  (ring-codec/url-encode stream-name))]
       (hidden-field "fn" "filter-map-add")
       (hidden-field (str "filter-key-" filter-col) filter-val)
 
@@ -182,7 +185,8 @@
   [:div {:class "col-xs-2"}
     (text-field {:placeholder (name (key m)) :class "form-control"} (name (key m)) (val m))]
   [:div {:class "col-xs-2"}
-    (html [:div {:class "make-switch" :data-on-label "<i class='icon-ok icon-key'></i>" :data-off-label "<i class='icon-list-alt'></i>" }
+   (html [:div {:class "make-switch" :data-on-label "<i class='icon-ok icon-key'></i>"
+                :data-off-label "<i class='icon-list-alt'></i>" }
           (let [cb-id (str "key_col_ind_" (clj-string/replace (key m) #":" ""))]
            (check-box (merge {:id cb-id :name cb-id :class "form-control"}
                              (if (some #(= % (key m)) (map keyword keycols))
@@ -232,7 +236,8 @@
 (defhtml totals-form [column-map stream-name total-cols]
 
   (form-to {:name "column-total-data" :class "form-horizontal" :role "form"}
-           [:get (str "/streams/data-header/" (clj-string/replace stream-name #" " "%20"))]  ;;need to add stream name here. was removed to keep parser from bitching
+           [:get (str "/streams/data-header/" (ring-codec/url-encode stream-name))]
+           ;;need to add stream name here. was removed to keep parser from bitching
 
       [:h4 "Total Columns"]
       [:p "Group and total data by the columns selected here"]
@@ -247,7 +252,7 @@
 
 (defhtml filtercols-form [column-map stream-name filter-cols]
   (form-to {:name "column-filter-data" :class "form-horizontal" :role "form"}
-           [:get (str "/streams/data-header/" (clj-string/replace stream-name #" " "%20"))] ;;need to add stream name here. was removed to keep parser from bitching
+           [:get (str "/streams/data-header/" (ring-codec/url-encode stream-name))] ;;need to add stream name here. was removed to keep parser from bitching
 
       [:h4 "Filter Columns"]
       [:p "Columns selected here will act as clickable filters in the pane below"]
@@ -265,8 +270,8 @@
    (form-to {:name from-stream-name :class "form-horizontal"} [:get (str "/streams/data-header/" (clj-string/replace from-stream-name #" " "%20"))] ;;need to add stream name here. was removed to keep parser from bitching
       [:h4 stream-name]
       [:p description]
-      (hidden-field "from-stream"  (clj-string/replace from-stream-name #" " "%20"))
-      (hidden-field "to-stream" (clj-string/replace stream-name #" " "%20"))
+      (hidden-field "from-stream"  (ring-codec/url-encode from-stream-name))
+      (hidden-field "to-stream" (ring-codec/url-encode stream-name))
       ;;(hidden-field "fn" (str description "-stream"))
       (let [action  (if (some #(= % stream-name)
                               mapped-streams)(str "unmap")(str "map"))
@@ -276,7 +281,7 @@
             (html (submit-button {:class (str "btn " (if (= action "map")
                                                  (str "btn-primary")
                                                  (str "btn-warning")))
-                                  :id (str action "-stream-" (clj-string/replace stream-name #" " "%20"))
+                                  :id (str action "-stream-" (ring-codec/url-encode stream-name))
                                   }
                            (str button-text " Collection"))))))
   ])
@@ -295,10 +300,15 @@
 
 (defhtml refresh-stream [stream-name last-refresh]
   [:hr]
-  [:p "Last refreshed: "[:abbr {:class "timeago" :title (time-format/unparse (time-format/formatters :date-time) (clj-time-coerce/from-date last-refresh))}]]
-  (form-to {:name stream-name :class "form-horizontal" :role "form"} [:get (str "/streams/data-header/" (clj-string/replace stream-name #" " "%20"))]
+  [:p "Last refreshed: "[:abbr {:class "timeago" :title
+                                (time-format/unparse (time-format/formatters :date-time)
+                                                     (clj-time-coerce/from-date last-refresh))}]]
+  (form-to {:name stream-name :class "form-horizontal" :role "form"}
+           [:get (str "/streams/data-header/" (ring-codec/url-encode stream-name))]
+           
     (hidden-field "fn" "refresh")
-    (hidden-field "refresh-datetime" (time-format/unparse (time-format/formatters :date-time) (clj-time-coerce/from-string last-refresh)))
+    (hidden-field "refresh-datetime" (time-format/unparse (time-format/formatters :date-time)
+                                                          (clj-time-coerce/from-string last-refresh)))
     (submit-button {:class "btn btn-danger"}  "Refresh"))
   [:hr]
   )
@@ -312,7 +322,8 @@
     [:div {:class "form-group"}
     (label {:class "control-label col-lg-2"} "report-name" "Report Name")
     [:div {:class "col-lg-6"}
-      (text-field (if report-name {:class "form-control" :disabled ""} {:class "form-control"}) "report-name" (if report-name report-name "Enter a name"))]
+     (text-field (if report-name {:class "form-control" :disabled ""} {:class "form-control"})
+                 "report-name" (if report-name report-name "Enter a name"))]
     ]
 
     (html [:div {:class "form-group"}
@@ -356,7 +367,8 @@
   [:h4 "Sort Data"]
   [:p "Select how the data should be sorted"]
   [:hr]
-  (form-to {:name "column-sort-data" :class "form-horizontal" :role "form"} [:get (str "/streams/data-header/" (clj-string/replace stream-name #" " "%20"))]
+  (form-to {:name "column-sort-data" :class "form-horizontal" :role "form"}
+           [:get (str "/streams/data-header/" (ring-codec/url-encode stream-name))]
     (hidden-field "fn" "sort")
     (render-sort-dropowns column-map 3 sort-map)
     (submit-button {:class "btn btn-primary" :id "sort-stream-button"} "Sort Data")
@@ -375,7 +387,7 @@
     [:p "Total the data by the fields you select and generate a pivot table"]
     [:hr]
     (form-to {:name "column-pivot-data" :class "form-horizontal" :role "form"}
-             [:get (str "/streams/data-header/" (clj-string/replace stream-name #" " "%20"))]
+             [:get (str "/streams/data-header/" (ring-codec/url-encode stream-name))]
 
       (if (and x-column y-column)
         (hidden-field "fn" "unpivot-totals")
@@ -417,7 +429,8 @@
     ]
     [:div {:class "tab-content"}
         [:div {:class (if pivotting "tab-pane" "tab-pane active") :id "totals"}
-          (totals-form column-map stream-name (sess-stream-attributes :total-cols))
+         (println "totals wtf " stream-name)
+         (totals-form column-map stream-name (sess-stream-attributes :total-cols))
         ]
         [:div {:class (if pivotting "tab-pane active" "tab-pane") :id "pivot"}
          (pivot-totals-form column-map stream-name

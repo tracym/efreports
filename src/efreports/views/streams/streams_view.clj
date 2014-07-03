@@ -23,12 +23,10 @@
 
                    (concat
                      (if (stream :flash)
-
-
-                                   (html [:div {:class "alert alert-danger alert-dismissable"}
-                                          [:button {:type "button" :class "close" :data-dismiss "alert" :aria-hidden "true"} "&times;"]
-                                          [:strong (stream :flash)]])
-                                    "")
+                         (html [:div {:class "alert alert-danger alert-dismissable"}
+                                [:button {:type "button" :class "close" :data-dismiss "alert" :aria-hidden "true"} "&times;"]
+                                [:strong (stream :flash)]])
+                          "")
                    (sm/stream-form {:action "create"}))))
 
 (defn display-all [streams reports]
