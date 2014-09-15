@@ -55,12 +55,19 @@
     {:datasource cpds}))
 
 
-(def pooled-db (delay (pool db)))
+(def pooled-local (delay (pool db)))
 
-(defn db-connection [] @pooled-db)
+(defn local-db-connection [] @pooled-local)
+
+(defn remote-db-connection []
+  (if-let [remote-db-spec (System/getenv "DATABASE_URL")]
+    (delay (pool remote-db-spec))
+    nil
+    ) 
+  )
 
 (defn exec-sql [sql-stmt & bind-params]
-  (sql/with-connection (or (System/getenv "DATABASE_URL") (db-connection))
+  (sql/with-connection (or (remote-db-connection) (local-db-connection))
     (sql/with-query-results rs (vec (cons sql-stmt bind-params))
       (doall rs))))
 
