@@ -6,7 +6,6 @@
 		 [com.novemberain/monger "1.4.2"]
 		 [lib-noir "0.3.3"]
                  [hiccup "1.0.2"]
-                 [org.clojure/java.jdbc "0.2.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
 		 [clojure-csv/clojure-csv "2.0.0-alpha1"]
 		 [net.sourceforge.jtds/jtds "1.2.4"]
@@ -29,6 +28,8 @@
                  [clj-http "0.7.8"]
                  [ring-anti-forgery "0.3.0"]
                  ;;[dieter "0.4.1"]
+                 [org.clojure/java.jdbc "0.3.5"]
+                 [heroku-database-url-to-jdbc "0.2.2"]
                  ]
   :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
   :ring {:handler efreports.handler/app :init efreports.helpers.mongo-init/mongo-connect}
@@ -45,7 +46,7 @@
                         
                         (use 'clojure.pprint)
                         (mongo-connect)
-                         )}
+                         ) :timeout 200000}
   :main ^:skip-aot efreports.handler
   :uberjar-name "efreports-standalone.jar"
   :profiles {:uberjar {:aot :all}})

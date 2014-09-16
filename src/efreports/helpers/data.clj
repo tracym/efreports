@@ -1,7 +1,8 @@
 (ns efreports.helpers.data
     (:use [clojure.set])
 		(:require [clojure.java.jdbc :as sql]
-				  		[clojure-csv.core :as csv]
+			  [clojure-csv.core :as csv]
+                          [heroku-database-url-to-jdbc.core :as h]
               [clojure.core.memoize :as memo])
     (:import com.mchange.v2.c3p0.ComboPooledDataSource))
 
@@ -55,14 +56,20 @@
     {:datasource cpds}))
 
 
-(def pooled-db (delay (pool db)))
+(def local-pooled-db (delay (pool db)))
 
-(defn db-connection [] @pooled-db)
+(defn local-db-connection [] @local-pooled-db)
+
+(defn remote-db-connection []
+  (if-let [url-string (System/getenv "DATABASE_URL")]
+    (let [remote-db-spec (h/korma-connection-map url-string)]
+      (delay (pool remote-db-spec)))
+    nil
+  ))
 
 (defn exec-sql [sql-stmt & bind-params]
-  (sql/with-connection (or (System/getenv "DATABASE_URL") (db-connection))
-    (sql/with-query-results rs (vec (cons sql-stmt bind-params))
-      (doall rs))))
+  (sql/query (or (remote-db-connection) (local-db-connection))
+     [sql-stmt]))
 
 (defn cached-query
   "Memoized call to exec-sql that tracks the user name and last refresh time.
