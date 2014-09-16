@@ -55,7 +55,6 @@
                (.setMaxIdleTime (* 3 60 60)))]
     {:datasource cpds}))
 
-
 (def local-pooled-db (delay (pool db)))
 
 (defn local-db-connection [] @local-pooled-db)
