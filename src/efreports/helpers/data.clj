@@ -55,16 +55,20 @@
                (.setMaxIdleTime (* 3 60 60)))]
     {:datasource cpds}))
 
-(def local-pooled-db (delay (pool db)))
-
-(defn local-db-connection [] @local-pooled-db)
-
-(defn remote-db-connection []
+(defn remote-db-spec []
   (if-let [url-string (System/getenv "DATABASE_URL")]
-    (let [remote-db-spec (h/korma-connection-map url-string)]
-      (delay (pool remote-db-spec)))
+    (let [db-spec (h/korma-connection-map url-string)]
+      (pool db-spec))
     nil
   ))
+
+
+(def local-pooled-db (delay (pool db)))
+(def remote-pooled-db (delay (remote-db-spec)))
+
+
+(defn local-db-connection [] @local-pooled-db)
+(defn remote-db-connection [] @remote-pooled-db)
 
 (defn exec-sql [sql-stmt & bind-params]
   (sql/query (or (remote-db-connection) (local-db-connection))
