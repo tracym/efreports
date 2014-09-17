@@ -8,7 +8,7 @@
                  [hiccup "1.0.2"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
 		 [clojure-csv/clojure-csv "2.0.0-alpha1"]
-		 [net.sourceforge.jtds/jtds "1.2.4"]
+		
                  [hiccup-bootstrap "0.1.1"]
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [c3p0/c3p0 "0.9.1.2"]
@@ -21,8 +21,6 @@
                  [org.clojure/core.memoize "0.5.6"]
                  [org.clojure/data.zip "0.1.1"]
                  [cheshire "5.2.0"]
-                 [com.github.kyleburton/clj-xpath "1.4.3"]
-                 [isaacsu/sandbar "0.4.1"]
                  [org.clojure/tools.logging "0.2.6"]
                  [digest "1.4.3"]
                  [clj-http "0.7.8"]
@@ -31,7 +29,7 @@
                  [org.clojure/java.jdbc "0.3.5"]
                  [heroku-database-url-to-jdbc "0.2.2"]
                  ]
-  :plugins [[lein-ring "0.8.2"] [lein-kibit "0.0.8"]]
+  :plugins [[lein-ring "0.8.2"]]
   :ring {:handler efreports.handler/app :init efreports.helpers.mongo-init/mongo-connect}
   :min-lein-version "2.0.0"
   :repl-options {:init (do
