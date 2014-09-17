@@ -8,12 +8,16 @@ A demo is available at the folling url:
 http://efreportsdemo.herokuapp.com
 
 ## Usage
-  `git clone https://github.com/tracym/efreports.git
+```
+git clone https://github.com/tracym/efreports.git
+```
 
 EF Reports is designed to use any database with a JDBC driver as the underlying RDBMS from wich to pull data. Unfortunately, I haven't had time make this configurable in a nicer way; so, next, you will need to update the db variable in helpers/data.clj to indicate the information for your local RDMS. Also, be sure to install the proper jdbc drivers as indicated on the [clojure jdbc page](https://github.com/clojure/java.jdbc). 
 
 ## Running
-   `lein trampoline ring server
+```
+lein trampoline ring server
+```
 
 Once you login using the supplied credentials on the login page, you will need to create a new collection. You will need to give this collection a name and description along with the SQL to retrieve the data from the local RDBMS you setup earlier. You then should be able navigate back to the collections list and click the collection name. Now you should see tabs that enable you to dynamically manipulate the collections data.
 
