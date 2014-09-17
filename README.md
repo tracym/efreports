@@ -23,6 +23,8 @@ Once you login using the supplied credentials on the login page, you will need t
 
 ## Known Issues
 
+* Need to add automated tests
+
 * Data manipulation code needs to be decoupled from data presentation code. Ideally, the presentation layer should communicate with the manipulation layer via an API.  
 
 * Forms that accept direct SQL input should be moved (perhaps to a sepearate application that could live behind a firewall) or removed because security
