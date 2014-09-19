@@ -24,7 +24,6 @@
             [efreports.helpers.html-components :as hc]
             [efreports.helpers.authentication :as auth]
             [efreports.controllers.reports-controller :as reports-controller]
-            [efreports.controllers.dashboard-controller :as dashboard-controller]
             [efreports.views.landing.landing-view :as landing]
             )
   (:gen-class))
@@ -62,7 +61,6 @@
   ;;(GET "/session" {session :session} (view-session session))
   streams-controller/routes
   reports-controller/routes
-  ;;dashboard-controller/routes
   (route/not-found (common "Not Found" nil (html [:h1 "Not Found"]))))
 
 
